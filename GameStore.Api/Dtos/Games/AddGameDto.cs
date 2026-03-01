@@ -1,0 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace GameStore.Api.Dtos.Games;
+
+public record AddGameDto(
+    [Required][StringLength(50)] string Name,
+    [Range(1,50)] int GenreId,
+    [Range(1,500)] decimal Price,
+    [Required] DateOnly ReleaseDate
+);

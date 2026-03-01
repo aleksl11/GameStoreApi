@@ -1,0 +1,34 @@
+//get all games
+GET http://localhost:5148/games
+
+###
+//get 1 game
+GET http://localhost:5148/games/1
+
+###
+//post game
+POST http://localhost:5148/games/add
+Content-Type: application/json
+
+{
+    "name": "bbb",
+    "GenreId": 4,
+    "price": 1.00,
+    "releaseDate": "2026-02-28"
+}
+
+###
+//put
+PUT http://localhost:5148/games/update/1
+Content-Type: application/json
+
+{
+  "name": "Street Fighter II",
+  "genreId": 1,
+  "price": 19.99,
+  "releaseDate": "1991-02-01"
+}
+
+###
+//delete
+DELETE http://localhost:5148/games/delete/2

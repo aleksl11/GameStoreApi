@@ -1,11 +1,18 @@
 using GameStore.Api.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Data;
 
-public class GameStoreContext(DbContextOptions<GameStoreContext> options) : DbContext(options)
+public class GameStoreContext(DbContextOptions<GameStoreContext> options) : IdentityDbContext<User>(options)
 {
     public DbSet<Game> Games => Set<Game>();
     public DbSet<Genre> Genres => Set<Genre>();
-    public DbSet<User> Users => Set<User>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        
+        builder.HasDefaultSchema("identity");
+    }
 }

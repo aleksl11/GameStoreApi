@@ -2,10 +2,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace GameStore.Api.Models;
 
-public class User
+public class User : IdentityUser
 {
-    public int Id {get; set;}
-    public required string Username {get; set;}
-    public required string Password {get; set;}
-    public required string Role {get; set;}
 }

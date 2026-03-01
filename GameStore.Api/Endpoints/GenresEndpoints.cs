@@ -51,7 +51,7 @@ public static class GenresEndpoints
             );
 
             return Results.CreatedAtRoute(GetGenreEndpoint, new {id = genre.Id}, genreDto);
-        });
+        }).RequireAuthorization();
 
         //PUT
         group.MapPut("/update/{id}", async (int id, UpdateGenreDto updateGenre, GameStoreContext dbContext) =>
@@ -68,7 +68,7 @@ public static class GenresEndpoints
             await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
-        });
+        }).RequireAuthorization();
 
         //DELETE    
         group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
@@ -78,7 +78,7 @@ public static class GenresEndpoints
                         .ExecuteDeleteAsync();
 
             return Results.NoContent();
-        });
+        }).RequireAuthorization();
     }
 
 }

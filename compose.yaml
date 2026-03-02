@@ -1,0 +1,13 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: gamestore_api
+
+    ports:
+      - 5001:5001
+
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development

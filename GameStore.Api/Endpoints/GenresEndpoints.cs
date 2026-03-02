@@ -45,6 +45,14 @@ public static class GenresEndpoints
 
             dbContext.Genres.Add(genre);
 
+            int rowsAffected = await dbContext.SaveChangesAsync();
+
+            if (rowsAffected == 0)
+            {
+                // If this hits, EF Core thinks there was nothing to do!
+                return Results.BadRequest("No changes were saved to the database.");
+            }
+
             GenreDto genreDto = new(
                 genre.Id,
                 genre.Name

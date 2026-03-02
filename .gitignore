@@ -7,5 +7,5 @@ obj/
 /node_modules
 /wwwroot/node_modules
 
-# main db file
-GameStore.Api/Gamestore.db
+# main db 
+mssql/

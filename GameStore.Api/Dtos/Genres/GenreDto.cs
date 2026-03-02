@@ -1,6 +1,6 @@
 namespace GameStore.Api.Dtos.Genres;
 
 public record GenreDto(
-    int Int,
+    int Id,
     string Name
 );

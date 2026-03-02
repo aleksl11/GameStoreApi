@@ -1,4 +1,21 @@
 services:
+
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gamestore-sql-server
+    environment:
+      SA_PASSWORD: "VerySecurePassword123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "VerySecurePassword123!", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   server:
     build:
       context: .
@@ -11,3 +28,9 @@ services:
 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__GameStore=Server=sql-server,1433;Database=gamestore_db;User Id=sa;Password=VerySecurePassword123!;TrustServerCertificate=True;
+    depends_on:
+      sql-server:
+        condition: service_healthy
+volumes:
+  sql-data:

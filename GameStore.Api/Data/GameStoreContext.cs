@@ -13,6 +13,6 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options) : Iden
     {
         base.OnModelCreating(builder);
         
-        builder.HasDefaultSchema("identity");
+         builder.Entity<User>().ToTable("AspNetUsers", "identity");
     }
 }

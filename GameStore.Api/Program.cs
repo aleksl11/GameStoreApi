@@ -27,7 +27,7 @@ builder.Services.AddIdentityCore<User>()
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
         policy.SetIsOriginAllowed(origin => true)
               .AllowAnyMethod()
@@ -37,6 +37,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
 {

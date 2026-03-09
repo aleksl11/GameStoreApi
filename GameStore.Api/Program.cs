@@ -51,7 +51,7 @@ app.UseAuthorization();
 
 app.MapGamesEndpoints();
 app.MapGenresEndpoints();
-//app.MapUsersEndpoints();
+app.MapUsersEndpoints();
 
 app.MapIdentityApi<User>();
 

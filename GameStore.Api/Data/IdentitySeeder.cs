@@ -27,7 +27,7 @@ public static class IdentitySeeder
         {
             user = new User
             {
-                UserName = adminEmail,
+                UserName = "Admin",
                 Email = adminEmail
             };
 

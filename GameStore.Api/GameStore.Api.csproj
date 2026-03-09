@@ -9,7 +9,6 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Dtos\" />
-    <Folder Include="Endpoints\" />
     <Folder Include="Models\" />
   </ItemGroup>
 
@@ -20,10 +19,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
-    <!-- <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.3">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference> -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
   </ItemGroup>
 

@@ -9,7 +9,7 @@ public static class GenresEndpoints
 {   
     const string GetGenreEndpoint = "GetGenre";
 
-    public static void mapGenresEndpoints(this WebApplication app)
+    public static void MapGenresEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/genres");
 
@@ -49,7 +49,6 @@ public static class GenresEndpoints
 
             if (rowsAffected == 0)
             {
-                // If this hits, EF Core thinks there was nothing to do!
                 return Results.BadRequest("No changes were saved to the database.");
             }
 
@@ -59,7 +58,7 @@ public static class GenresEndpoints
             );
 
             return Results.CreatedAtRoute(GetGenreEndpoint, new {id = genre.Id}, genreDto);
-        }).RequireAuthorization();
+        }).RequireAuthorization("AdminOnly");
 
         //PUT
         group.MapPut("/update/{id}", async (int id, UpdateGenreDto updateGenre, GameStoreContext dbContext) =>
@@ -76,7 +75,7 @@ public static class GenresEndpoints
             await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
-        }).RequireAuthorization();
+        }).RequireAuthorization("AdminOnly");
 
         //DELETE    
         group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
@@ -86,7 +85,7 @@ public static class GenresEndpoints
                         .ExecuteDeleteAsync();
 
             return Results.NoContent();
-        }).RequireAuthorization();
+        }).RequireAuthorization("AdminOnly");
     }
 
 }

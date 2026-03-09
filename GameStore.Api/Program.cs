@@ -12,12 +12,29 @@ builder.AddGameStoreDb();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+});
+
 builder.Services.AddAuthentication().AddCookie(IdentityConstants.ApplicationScheme);
 
 builder.Services.AddIdentityCore<User>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<GameStoreContext>()
     .AddApiEndpoints();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -27,11 +44,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.mapGamesEndpoints();
-app.mapGenresEndpoints();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGamesEndpoints();
+app.MapGenresEndpoints();
+//app.MapUsersEndpoints();
 
 app.MapIdentityApi<User>();
 
 app.MigrateDb();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await IdentitySeeder.SeedAsync(services);
+}
 
 app.Run();

@@ -21,7 +21,7 @@ public static class GamesEndpoints
     //     new (10, "Starcraft", 9, 14.99M, new DateOnly(1998, 3, 31))
     // ]; 
 
-    public static void mapGamesEndpoints(this WebApplication app)
+    public static void MapGamesEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/games");
         // GET
@@ -78,7 +78,7 @@ public static class GamesEndpoints
             );
 
             return Results.CreatedAtRoute(GetGameEndpoint, new {id = game.Id}, gameDto);
-        }).RequireAuthorization();
+        }).RequireAuthorization("AdminOnly");
 
         //PUT
         group.MapPut("/update/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext) =>
@@ -98,7 +98,7 @@ public static class GamesEndpoints
             await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
-        }).RequireAuthorization();
+        }).RequireAuthorization("AdminOnly");
 
         //DELETE
         group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
@@ -108,6 +108,6 @@ public static class GamesEndpoints
                         .ExecuteDeleteAsync();
 
             return Results.NoContent();
-        }).RequireAuthorization();
+        }).RequireAuthorization("AdminOnly");
     }
 }

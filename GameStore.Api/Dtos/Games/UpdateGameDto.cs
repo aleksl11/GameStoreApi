@@ -1,10 +1,21 @@
 using System.ComponentModel.DataAnnotations;
+using GameStore.Api.Dtos.Images;
 
 namespace GameStore.Api.Dtos.Games;
 
-public record UpdateGameDto(
-    [Required][StringLength(50)] string Name,
-    [Range(1,50)] int GenreId,
-    [Range(1,500)] decimal Price,
-    [Required] DateOnly ReleaseDate
-);
+public class UpdateGameDto
+{
+[Required]
+    [StringLength(50)] 
+    public string Name { get; set; } = string.Empty;
+
+    public int GenreId { get; set; }
+
+    [Range(1, 500)] 
+    public decimal Price { get; set; }
+
+    [Required] 
+    public DateOnly ReleaseDate { get; set; }
+
+    public ImageDto? Image { get; set; }
+}

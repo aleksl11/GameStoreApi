@@ -1,7 +1,9 @@
 using GameStore.Api.Data;
+using GameStore.Api.Dtos.Images;
 using GameStore.Api.Dtos.Games;
 using GameStore.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GameStore.Api.Endpoints;
 
@@ -33,7 +35,8 @@ public static class GamesEndpoints
                 game.Name,
                 game.Genre!.Name,
                 game.Price,
-                game.ReleaseDate
+                game.ReleaseDate,
+                game.ImageId
             ))
             .AsNoTracking()
             .ToListAsync()
@@ -49,21 +52,29 @@ public static class GamesEndpoints
                     game.Name,
                     game.GenreId,
                     game.Price,
-                    game.ReleaseDate
+                    game.ReleaseDate,
+                    game.ImageId
                 )
             );
         }).WithName(GetGameEndpoint);
 
         //POST
-        group.MapPost("/add", async (AddGameDto newGame, GameStoreContext dbContext) =>
+        group.MapPost("/add", async ([FromForm] AddGameDto newGame, GameStoreContext dbContext) =>
         {
+            var newImage = newGame.Image;
+            var imageId = (int?)null;
+            if (newImage != null && newImage.File.Length > 0)
+            {
+                imageId = await SaveImageToDatabase(newImage, dbContext);
+            }
             
             Game game = new()
             {
                 Name = newGame.Name,
                 GenreId = newGame.GenreId,
                 Price = newGame.Price,
-                ReleaseDate = newGame.ReleaseDate
+                ReleaseDate = newGame.ReleaseDate,
+                ImageId = imageId
             };
 
             dbContext.Games.Add(game);
@@ -74,14 +85,16 @@ public static class GamesEndpoints
                 game.Name,
                 game.GenreId,
                 game.Price,
-                game.ReleaseDate
+                game.ReleaseDate,
+                game.ImageId
             );
 
             return Results.CreatedAtRoute(GetGameEndpoint, new {id = game.Id}, gameDto);
-        }).RequireAuthorization("AdminOnly");
+        }).RequireAuthorization("AdminOnly")
+        .DisableAntiforgery();
 
         //PUT
-        group.MapPut("/update/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext) =>
+        group.MapPut("/update/{id}", async (int id, [FromForm] UpdateGameDto updatedGame, GameStoreContext dbContext) =>
         {
             var existingGame = await dbContext.Games.FindAsync(id);
 
@@ -95,10 +108,19 @@ public static class GamesEndpoints
             existingGame.Price = updatedGame.Price;
             existingGame.ReleaseDate = updatedGame.ReleaseDate;
 
+            var newImage = updatedGame.Image; //Fix images update
+            if (newImage != null && newImage.File.Length > 0)
+            {
+                var imageId = SaveImageToDatabase(newImage, dbContext);
+                existingGame.ImageId = await imageId;
+            }
+
+
             await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
-        }).RequireAuthorization("AdminOnly");
+        }).RequireAuthorization("AdminOnly")
+        .DisableAntiforgery();
 
         //DELETE
         group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
@@ -109,5 +131,25 @@ public static class GamesEndpoints
 
             return Results.NoContent();
         }).RequireAuthorization("AdminOnly");
+    }
+
+    public static async Task<int> SaveImageToDatabase(ImageDto imageDto, GameStoreContext dbContext)
+    {
+        var file = imageDto.File;
+        using var memoryStream = new MemoryStream();
+        file.CopyTo(memoryStream);
+
+        Image image = new()
+        {
+            Description = imageDto.Description,
+            Data = memoryStream.ToArray(),
+            FileExtention = Path.GetExtension(file.FileName),
+            UploadDate = DateTime.UtcNow
+        };
+
+        await dbContext.Images.AddAsync(image);
+        await dbContext.SaveChangesAsync();
+
+        return image.Id;
     }
 }

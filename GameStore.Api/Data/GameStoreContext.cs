@@ -8,6 +8,7 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options) : Iden
 {
     public DbSet<Game> Games => Set<Game>();
     public DbSet<Genre> Genres => Set<Genre>();
+    public DbSet<Image> Images => Set<Image>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

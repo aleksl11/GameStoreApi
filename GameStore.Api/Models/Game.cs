@@ -13,4 +13,7 @@ public class Game
     [Precision(18,2)]
     public required decimal Price {get; set;}
     public required DateOnly ReleaseDate {get; set;}
+
+    public Image? Image {get; set;}
+    public int? ImageId {get; set;}
 }

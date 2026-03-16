@@ -9,7 +9,8 @@ public static class UsersEndpoints
 {
     public static void MapUsersEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/users");
+        var group = app.MapGroup("/users")
+            .WithTags("Users");
 
         //GET
         group.MapGet("/me", async (ClaimsPrincipal user, UserManager<User> userManager) =>

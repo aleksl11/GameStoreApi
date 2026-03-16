@@ -12,7 +12,8 @@ public static class ImagesEndpoints
 
     public static void MapImagesEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/images");
+        var group = app.MapGroup("/images")
+            .WithTags("Images");
 
         group.MapGet("/{id}", async (int id, GameStoreContext dbContext) =>
         {

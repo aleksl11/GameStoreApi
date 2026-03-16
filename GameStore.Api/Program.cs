@@ -54,7 +54,10 @@ app.MapGenresEndpoints();
 app.MapUsersEndpoints();
 app.MapImagesEndpoints();
 
-app.MapIdentityApi<User>();
+var identityGroup = app.MapGroup("/identity")
+    .WithTags("Identity"); 
+
+identityGroup.MapIdentityApi<User>();
 
 app.MigrateDb();
 

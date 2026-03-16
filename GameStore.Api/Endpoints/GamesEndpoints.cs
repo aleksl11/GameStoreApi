@@ -25,7 +25,9 @@ public static class GamesEndpoints
 
     public static void MapGamesEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/games");
+        var group = app.MapGroup("/games")
+            .WithTags("Games");
+
         // GET
         group.MapGet("/", async (GameStoreContext dbContext) => 
             await dbContext.Games

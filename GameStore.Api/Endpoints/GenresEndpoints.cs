@@ -17,7 +17,8 @@ public static class GenresEndpoints
         group.MapGet("/", async (GameStoreContext dbContext) =>
             await dbContext.Genres.Select(genre => new GenreDto(
                 genre.Id,
-                genre.Name
+                genre.Name,
+                genre.ImageId
             ))
             .AsNoTracking()
             .ToListAsync()
@@ -30,7 +31,8 @@ public static class GenresEndpoints
             return genre is null ? Results.NotFound() : Results.Ok(
                 new GenreDto(
                     genre.Id,
-                    genre.Name
+                    genre.Name,
+                    genre.ImageId
                 )
             );
         }).WithName(GetGenreEndpoint);
@@ -38,27 +40,31 @@ public static class GenresEndpoints
         //POST
         group.MapPost("/add", async (AddGenreDto newGenre, GameStoreContext dbContext) =>
         {
+            var newImage = newGenre.Image;
+            var imageId = (int?)null;
+            if (newImage != null && newImage.File.Length > 0)
+            {
+                imageId = await ImagesEndpoints.SaveImageToDatabase(newImage, dbContext);
+            }
+
             Genre genre = new()
             {
-                Name = newGenre.Name
+                Name = newGenre.Name,
+                ImageId = imageId
             };
 
             dbContext.Genres.Add(genre);
-
-            int rowsAffected = await dbContext.SaveChangesAsync();
-
-            if (rowsAffected == 0)
-            {
-                return Results.BadRequest("No changes were saved to the database.");
-            }
+            await dbContext.SaveChangesAsync();
 
             GenreDto genreDto = new(
                 genre.Id,
-                genre.Name
+                genre.Name,
+                genre.ImageId
             );
 
             return Results.CreatedAtRoute(GetGenreEndpoint, new {id = genre.Id}, genreDto);
-        }).RequireAuthorization("AdminOnly");
+        }).RequireAuthorization("AdminOnly")
+        .DisableAntiforgery();
 
         //PUT
         group.MapPut("/update/{id}", async (int id, UpdateGenreDto updateGenre, GameStoreContext dbContext) =>
@@ -72,6 +78,17 @@ public static class GenresEndpoints
 
             existingGenre.Name = updateGenre.Name;
 
+            var newImage = updateGenre.Image;
+            if (newImage != null && newImage.File.Length > 0)
+            {
+                var imageId = await ImagesEndpoints.SaveImageToDatabase(newImage, dbContext);
+                await  dbContext.Images
+                        .Where(image => image.Id == existingGenre.ImageId)
+                        .ExecuteDeleteAsync();
+                
+                existingGenre.ImageId = imageId;
+            }
+
             await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
@@ -80,9 +97,18 @@ public static class GenresEndpoints
         //DELETE    
         group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
         {
-            await dbContext.Genres
-                        .Where(genre => genre.Id == id)
-                        .ExecuteDeleteAsync();
+            var genre = await dbContext.Genres
+                .Include(g => g.Image)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (genre is null)
+                return Results.NotFound();
+
+            if (genre.Image != null)
+                dbContext.Images.Remove(genre.Image);
+
+            dbContext.Genres.Remove(genre);
+            await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
         }).RequireAuthorization("AdminOnly");

@@ -17,6 +17,5 @@ public class AddGameDto
     [Required] 
     public DateOnly ReleaseDate { get; set; }
 
-    // This being nullable now works correctly with [FromForm]
     public ImageDto? Image { get; set; }
 }

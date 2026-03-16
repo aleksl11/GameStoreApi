@@ -2,6 +2,7 @@ using GameStore.Api.Data;
 using GameStore.Api.Dtos.Images;
 using GameStore.Api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Endpoints;
 
@@ -28,25 +29,22 @@ public static class ImagesEndpoints
             if (newImage.File == null || newImage.File.Length == 0)
                 return Results.BadRequest("No file was uploaded.");
 
-            var file = newImage.File;
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
+            var imageId = await SaveImageToDatabase(newImage, dbContext); 
 
-            Image image = new()
-            {
-                Description = newImage.Description,
-                Data = memoryStream.ToArray(),
-                FileExtention = Path.GetExtension(file.FileName),
-                UploadDate = DateTime.UtcNow
-            };
-
-            dbContext.Images.Add(image);
-            await dbContext.SaveChangesAsync();
-            return Results.CreatedAtRoute(GetImageEndpoint, new { id = image.Id }, new { image.Id, image.Description });
+            return Results.CreatedAtRoute(GetImageEndpoint, new { id = imageId }, new { imageId, newImage.Description });
         })
         .DisableAntiforgery()
         .RequireAuthorization("AdminOnly")
         .Accepts<ImageDto>("multipart/form-data");
+
+        group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
+        {
+            await  dbContext.Images
+                        .Where(image => image.Id == id)
+                        .ExecuteDeleteAsync();
+            
+            return Results.NoContent();
+        }).RequireAuthorization("AdminOnly");
     }
 
     public static string GetContentType(string fileExtension) => fileExtension.ToLower() switch
@@ -56,4 +54,24 @@ public static class ImagesEndpoints
         ".gif" => "image/gif",
         _ => "application/octet-stream"
     };
+
+    public static async Task<int> SaveImageToDatabase(ImageDto imageDto, GameStoreContext dbContext)
+    {
+        var file = imageDto.File;
+        using var memoryStream = new MemoryStream();
+        file.CopyTo(memoryStream);
+
+        Image image = new()
+        {
+            Description = imageDto.Description,
+            Data = memoryStream.ToArray(),
+            FileExtention = Path.GetExtension(file.FileName),
+            UploadDate = DateTime.UtcNow
+        };
+
+        await dbContext.Images.AddAsync(image);
+        await dbContext.SaveChangesAsync();
+
+        return image.Id;
+    }
 }

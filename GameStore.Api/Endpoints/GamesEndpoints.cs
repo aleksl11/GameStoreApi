@@ -65,7 +65,7 @@ public static class GamesEndpoints
             var imageId = (int?)null;
             if (newImage != null && newImage.File.Length > 0)
             {
-                imageId = await SaveImageToDatabase(newImage, dbContext);
+                imageId = await ImagesEndpoints.SaveImageToDatabase(newImage, dbContext);
             }
             
             Game game = new()
@@ -108,11 +108,15 @@ public static class GamesEndpoints
             existingGame.Price = updatedGame.Price;
             existingGame.ReleaseDate = updatedGame.ReleaseDate;
 
-            var newImage = updatedGame.Image; //Fix images update
+            var newImage = updatedGame.Image;
             if (newImage != null && newImage.File.Length > 0)
             {
-                var imageId = SaveImageToDatabase(newImage, dbContext);
-                existingGame.ImageId = await imageId;
+                var imageId = await ImagesEndpoints.SaveImageToDatabase(newImage, dbContext);
+                await  dbContext.Images
+                        .Where(image => image.Id == existingGame.ImageId)
+                        .ExecuteDeleteAsync();
+
+                existingGame.ImageId = imageId;
             }
 
 
@@ -125,31 +129,20 @@ public static class GamesEndpoints
         //DELETE
         group.MapDelete("/delete/{id}", async (int id, GameStoreContext dbContext) =>
         {
-            await dbContext.Games
-                        .Where(game => game.Id == id)
-                        .ExecuteDeleteAsync();
+            var game = await dbContext.Games
+                .Include(g => g.Image)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (game is null)
+                return Results.NotFound();
+
+            if (game.Image != null)
+                dbContext.Images.Remove(game.Image);
+
+            dbContext.Games.Remove(game);
+            await dbContext.SaveChangesAsync();
 
             return Results.NoContent();
         }).RequireAuthorization("AdminOnly");
-    }
-
-    public static async Task<int> SaveImageToDatabase(ImageDto imageDto, GameStoreContext dbContext)
-    {
-        var file = imageDto.File;
-        using var memoryStream = new MemoryStream();
-        file.CopyTo(memoryStream);
-
-        Image image = new()
-        {
-            Description = imageDto.Description,
-            Data = memoryStream.ToArray(),
-            FileExtention = Path.GetExtension(file.FileName),
-            UploadDate = DateTime.UtcNow
-        };
-
-        await dbContext.Images.AddAsync(image);
-        await dbContext.SaveChangesAsync();
-
-        return image.Id;
     }
 }

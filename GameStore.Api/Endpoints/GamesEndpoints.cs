@@ -48,6 +48,23 @@ public static class GamesEndpoints
             );
         }).WithName(GetGameEndpoint);
 
+        // GET filtered by genre
+        group.MapGet("/genre/{id}", async (int id, GameStoreContext dbContext) => 
+            await dbContext.Games
+            .Where(game => game.GenreId == id)
+            .Include(game => game.Genre)
+            .Select(game => new GameSummaryDto(
+                game.Id,
+                game.Name,
+                game.Genre!.Name,
+                game.Price,
+                game.ReleaseDate,
+                game.ImageId
+            ))
+            .AsNoTracking()
+            .ToListAsync()
+        );
+
         //POST
         group.MapPost("/add", async ([FromForm] AddGameDto newGame, GameStoreContext dbContext) =>
         {

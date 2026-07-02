@@ -16,6 +16,21 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: gamestore-rabbitmq
+    ports:
+      - "5672:5672"   
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5    
+
   server:
     build:
       context: .
@@ -29,8 +44,32 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__GameStore=Server=sql-server,1433;Database=gamestore_db;User Id=sa;Password=VerySecurePassword123!;TrustServerCertificate=True;
+      - RabbitMQ__Host=rabbitmq
     depends_on:
       sql-server:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./shared:/app/shared
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.Worker
+    container_name: gamestore_worker
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__GameStore=Server=sql-server,1433;Database=gamestore_db;User Id=sa;Password=VerySecurePassword123!;TrustServerCertificate=True;
+      - RabbitMQ__Host=rabbitmq 
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./shared:/app/shared
+
 volumes:
   sql-data:
+  shared-files:

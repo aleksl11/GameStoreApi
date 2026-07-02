@@ -2,20 +2,23 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-COPY ["GameStore.Api/GameStore.Api.csproj", ""]
-RUN dotnet restore 'GameStore.Api.csproj'
+COPY ["GameStore.Api/GameStore.Api.csproj", "GameStore.Api/"]
+COPY ["GameStore.Contracts/GameStore.Contracts.csproj", "GameStore.Contracts/"]
 
-COPY ["GameStore.Api/", ""]
-RUN dotnet restore 'GameStore.Api.csproj'
-RUN dotnet build 'GameStore.Api.csproj' -c Release -o /app/build
+RUN dotnet restore "GameStore.Api/GameStore.Api.csproj"
 
-FROM build AS publish
-RUN dotnet publish 'GameStore.Api.csproj' -c Release -o /app/publish
+COPY . .
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0
+WORKDIR "/src/GameStore.Api"
+RUN dotnet publish "GameStore.Api.csproj" -c Release -o /app/publish
+
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+
 ENV ASPNETCORE_HTTP_PORTS=5001
 EXPOSE 5001
+
 WORKDIR /app
 
-COPY --from=publish /app/publish .
-ENTRYPOINT [ "dotnet", "GameStore.Api.dll" ]
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "GameStore.Api.dll"]

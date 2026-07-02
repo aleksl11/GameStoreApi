@@ -9,3 +9,6 @@ obj/
 
 # main db 
 mssql/
+
+#generated files
+shared/

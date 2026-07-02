@@ -2,8 +2,25 @@ using GameStore.Api.Data;
 using GameStore.Api.Endpoints;
 using GameStore.Api.Models;
 using Microsoft.AspNetCore.Identity;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<GameStore.Api.Consumers.PaymentCompletedConsumer>();
+    
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+        cfg.Host(rabbitHost, "/", h => {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddValidation();
 
@@ -53,6 +70,7 @@ app.MapGamesEndpoints();
 app.MapGenresEndpoints();
 app.MapUsersEndpoints();
 app.MapImagesEndpoints();
+app.MapOrdersEndpoints();
 
 var identityGroup = app.MapGroup("/identity")
     .WithTags("Identity"); 

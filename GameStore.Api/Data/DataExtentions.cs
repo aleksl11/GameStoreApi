@@ -56,6 +56,21 @@ public static class DataExtentions
 
                     context.SaveChanges();
                 }
+
+                if (!context.Set<Game>().Any()) 
+                {
+                    var gamesSqlPath = Path.Combine(AppContext.BaseDirectory, "Data", "Games.sql");
+                    
+                    if (File.Exists(gamesSqlPath))
+                    {
+                        var sql = File.ReadAllText(gamesSqlPath);
+                        context.Database.ExecuteSqlRaw(sql);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"WARNING: Seed file not found at {gamesSqlPath}");
+                    }
+                }
             })
         );
     }

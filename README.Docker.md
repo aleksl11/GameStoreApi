@@ -22,3 +22,11 @@ docs for more detail on building and pushing.
 * [Docker's .NET guide](https://docs.docker.com/language/dotnet/)
 * The [dotnet-docker](https://github.com/dotnet/dotnet-docker/tree/main/samples)
   repository has many relevant samples and docs.
+
+
+### Adding frontend to project
+Create a new directory named GameStore.FE and paste there the frontend project (without a sub directory, app/ and package.json should be in GameStore.FE)
+Uncommend frontend part from compose.yaml file
+Start the whole app by running:
+`docker compose up --build`.
+Frontend will be available at: http://localhost:3000/games

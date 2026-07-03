@@ -70,6 +70,23 @@ services:
     volumes:
       - ./shared:/app/shared
 
+# Uncomment to add frontend to docker
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.FE
+  #   container_name: gamestore_frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - API_URL=http://server:5001
+  #     - NEXT_PUBLIC_API_URL=http://localhost:5001
+  #   depends_on:
+  #     - server
+  #   volumes:
+  #     - ./GameStore.FE:/app
+  #     - /app/node_modules
+
 volumes:
   sql-data:
   shared-files:
